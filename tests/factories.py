@@ -31,4 +31,10 @@ class ProductFactory(factory.Factory):
         model = Product
 
     id = factory.Sequence(lambda n: n)
+    name = factory.Faker("pystr", min_chars=5, max_chars=100)
+    description = factory.Faker("pystr", min_chars=5, max_chars=250)
+    price = factory.fuzzy.FuzzyDecimal(low=0.0)
+    available = factory.Faker("pybool")
+    category = factory.fuzzy.FuzzyChoice(Category)
+
    ## Add code to create Fake Products 
