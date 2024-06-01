@@ -188,14 +188,15 @@ class TestProductRoutes(TestCase):
         test_product = self._create_products()[0]
         response = self.client.post(BASE_URL, json=test_product.serialize())
 
-        test_product.price += 10.0
+        test_product.price += Decimal('10.0')
         response = self.client.put(f"{BASE_URL}/{test_product.id}", json=test_product.serialize())
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response = self.client.get(f"{BASE_URL}/{test_product.id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         new_product = response.get_json()
-        self.assertEqual(new_product["price"], test_product.price)
+        new_product = Product().deserialize(new_product)
+        self.assertEqual(new_product.price, test_product.price)
 
     def test_delete_product(self):
         test_product = self._create_products()[0]
@@ -229,6 +230,7 @@ class TestProductRoutes(TestCase):
         self.assertTrue(len(matched_products)>0)
 
         for p in matched_products:
+            p = Product().deserialize(p)
             self.assertEqual(p.name, target)
     
     def test_list_products_by_category(self):
@@ -236,12 +238,13 @@ class TestProductRoutes(TestCase):
         response = self.client.get(BASE_URL)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        target = test_products[0].category
+        target = test_products[0].category.value
         response = self.client.get(f"{BASE_URL}?category={target}")
         matched_products = response.get_json()
         self.assertTrue(len(matched_products)>0)
 
         for p in matched_products:
+            p = Product().deserialize(p)
             self.assertEqual(p.category, target)
     
     def test_list_products_by_availability(self):
@@ -255,6 +258,7 @@ class TestProductRoutes(TestCase):
         self.assertTrue(len(matched_products)>0)
 
         for p in matched_products:
+            p = Product().deserialize(p)
             self.assertEqual(p.available, target)
 
 
