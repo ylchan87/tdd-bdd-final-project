@@ -104,9 +104,19 @@ def create_products():
 def get_products():
     avai = request.args.get('available', default=None, type=str)
     name = request.args.get('name', default=None, type=str)
-    cate = request.args.get('category', default=None, type=int)
+    cate = request.args.get('category', default=None, type=str)
 
-    if avai is not None:
+    app.logger.info("GET /products %s", request.args)
+
+    if cate is not None:
+        if cate.isdigit():
+            cate = int(cate)
+            cate = Category(cate)  # lookup by int value
+        else:
+            cate = Category[cate]  # lookup by name
+
+        products = Product.find_by_category(cate)
+    elif avai is not None:
         if avai.lower() in ["true", "yes", "1"]:
             avai = True
         else:
@@ -114,9 +124,6 @@ def get_products():
         products = Product.find_by_availability(avai)
     elif name is not None:
         products = Product.find_by_name(name)
-    elif cate is not None:
-        cate = Category(cate)
-        products = Product.find_by_category(cate)
     else:
         products = Product.all()
 
@@ -136,8 +143,10 @@ def get_products():
 def get_product(product_id):
 
     product = Product.find(product_id)
+    app.logger.info("GET /products/<product_id> %s", product_id)
 
     if product is None:
+        app.logger.info("GET /products/<product_id> %s not found", product_id)
         abort(
             status.HTTP_404_NOT_FOUND,
             "No said product",
@@ -158,6 +167,7 @@ def get_product(product_id):
 def update_product(product_id):
 
     product = Product.find(product_id)
+    app.logger.info("PUT /products/<product_id> %s", product_id)
 
     if product is None:
         abort(
@@ -172,7 +182,8 @@ def update_product(product_id):
     product.id = product_id
     product.update()
 
-    return "OK", status.HTTP_200_OK
+    msg = product.serialize()
+    return jsonify(msg), status.HTTP_200_OK
 
 
 ######################################################################
@@ -196,4 +207,11 @@ def delete_product(product_id):
 
     product.delete()
 
-    return "OK", status.HTTP_200_OK
+    return "OK", status.HTTP_204_NO_CONTENT
+
+
+# @app.route('/', defaults={'path': ''})
+# @app.route('/<path:path>')
+# def catch_all(path):
+#     app.logger.info('You want path: %s', path)
+#     return 'You want path: %s' % path, status.HTTP_404_NOT_FOUND
