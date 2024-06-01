@@ -108,7 +108,7 @@ def get_products():
 
     app.logger.info("GET /products %s", request.args)
 
-    if cate is not None:
+    if cate is not None and cate != "UNKNOWN":
         if cate.isdigit():
             cate = int(cate)
             cate = Category(cate)  # lookup by int value
