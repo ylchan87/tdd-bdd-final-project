@@ -102,16 +102,22 @@ def create_products():
 #
 @app.route("/products", methods=["GET"])
 def get_products():
-    avai = request.args.get('available', default = None, type = bool)
+    avai = request.args.get('available', default = None, type = str)
     name = request.args.get('name', default = None, type = str)
     cate = request.args.get('category', default = None, type = int)
 
+    
+    
     if avai is not None:
+        if avai.lower() in ["true", "yes", "1"]:
+            avai = True
+        else:
+            avai = False
         products = Product.find_by_availability(avai)
     elif name is not None:
         products = Product.find_by_name(name)
     elif cate is not None:
-        cate = Category[cate]
+        cate = Category(cate)
         products = Product.find_by_category(cate)
     else:
         products = Product.all()
@@ -163,7 +169,6 @@ def update_product(product_id):
     check_content_type("application/json")
     data = request.get_json()
     
-    product = Product()
     product.deserialize(data) # FIXME: no error check
     product.id = product_id
     product.update()

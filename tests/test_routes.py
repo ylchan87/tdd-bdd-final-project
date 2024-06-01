@@ -238,8 +238,8 @@ class TestProductRoutes(TestCase):
         response = self.client.get(BASE_URL)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        target = test_products[0].category.value
-        response = self.client.get(f"{BASE_URL}?category={target}")
+        target = test_products[0].category
+        response = self.client.get(f"{BASE_URL}?category={target.value}")
         matched_products = response.get_json()
         self.assertTrue(len(matched_products)>0)
 
