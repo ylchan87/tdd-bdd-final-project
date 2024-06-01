@@ -27,7 +27,7 @@ import os
 import logging
 import unittest
 from decimal import Decimal
-from service.models import Product, Category, db
+from service.models import Product, Category, db, DataValidationError
 from service import app
 from tests.factories import ProductFactory
 
@@ -124,8 +124,137 @@ class TestProductModel(unittest.TestCase):
         new_price = 10.0
         product.price = new_price
         product.update()
-        
+
         # Fetch it back
         found_product = Product.find(product.id)
         self.assertEqual(found_product.price, new_price)
-        
+
+    def test_delete_a_product(self):
+        product = ProductFactory()
+
+        product.create()
+        products = Product.all()
+        self.assertEqual(len(products), 1)
+
+        product.delete()
+        products = Product.all()
+        self.assertEqual(len(products), 0)
+
+    def test_list_all_product(self):
+        products = Product.all()
+        self.assertEqual(len(products), 0)
+
+        for i in range(5):
+            product = ProductFactory()
+            product.create()
+
+        products = Product.all()
+        self.assertEqual(len(products), 5)
+
+    def test_find_product_by_name(self):
+        for i in range(5):
+            product = ProductFactory()
+            product.create()
+
+        products = Product.all()
+        target = products[0].name
+
+        expected_matches = sum(1 for p in products if p.name == target)
+
+        search_results = Product.find_by_name(target)
+        self.assertEqual(search_results.count(), expected_matches)
+
+        for p in search_results:
+            self.assertEqual(p.name, target)
+
+    def test_find_product_by_availability(self):
+
+        expected_matches = 0
+        target = None
+
+        for i in range(10):
+            product = ProductFactory()
+            product.create()
+
+            if i == 0:
+                target = product.available
+
+            if target == product.available:
+                expected_matches += 1
+
+        search_results = Product.find_by_availability(target)
+        self.assertEqual(search_results.count(), expected_matches)
+
+        for p in search_results:
+            self.assertEqual(p.available, target)
+
+    def test_find_product_by_price(self):
+
+        expected_matches = 0
+        target = None
+
+        for i in range(10):
+            product = ProductFactory()
+            product.create()
+
+            if i == 0:
+                target = product.price
+
+            if target == product.price:
+                expected_matches += 1
+
+        search_results = Product.find_by_price(target)
+        self.assertEqual(search_results.count(), expected_matches)
+
+        for p in search_results:
+            self.assertEqual(p.price, target)
+
+    def test_find_product_by_category(self):
+
+        expected_matches = 0
+        target = None
+
+        for i in range(10):
+            product = ProductFactory()
+            product.create()
+
+            if i == 0:
+                target = product.category
+
+            if target == product.category:
+                expected_matches += 1
+
+        search_results = Product.find_by_category(target)
+        self.assertEqual(search_results.count(), expected_matches)
+
+        for p in search_results:
+            self.assertEqual(p.category, target)
+
+    def test_serialize_deserialize(self):
+        product = Product(name="Fedora", description="A red hat", price=12.50, available=True, category=Category.CLOTHS)
+
+        tmp_dict = product.serialize()
+        product2 = Product().deserialize(tmp_dict)
+
+        self.assertEqual(str(product), "<Product Fedora id=[None]>")
+        self.assertTrue(product2 is not None)
+        self.assertEqual(product.id, product2.id)
+        self.assertEqual(product.name, product2.name)
+        self.assertEqual(product.description, product2.description)
+        self.assertEqual(product.available, product2.available)
+        self.assertEqual(product.price, product2.price)
+        self.assertEqual(product.category, product2.category)
+
+        tmp_dict_defective = tmp_dict.copy()
+        tmp_dict_defective["available"] = "Yes"
+        with self.assertRaises(DataValidationError):
+            Product().deserialize(tmp_dict_defective)
+
+        tmp_dict_defective = tmp_dict.copy()
+        del tmp_dict_defective["price"]
+        with self.assertRaises(DataValidationError):
+            Product().deserialize(tmp_dict_defective)
+
+        tmp_dict_defective = str(tmp_dict)
+        with self.assertRaises(DataValidationError):
+            Product().deserialize(tmp_dict_defective)
