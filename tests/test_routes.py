@@ -212,7 +212,7 @@ class TestProductRoutes(TestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_list_products(self):
-        test_products = self._create_products(10)
+        self._create_products(10)
         response = self.client.get(BASE_URL)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -227,12 +227,12 @@ class TestProductRoutes(TestCase):
         target = test_products[0].name
         response = self.client.get(f"{BASE_URL}?name={target}")
         matched_products = response.get_json()
-        self.assertTrue(len(matched_products)>0)
+        self.assertTrue(len(matched_products) > 0)
 
         for p in matched_products:
             p = Product().deserialize(p)
             self.assertEqual(p.name, target)
-    
+
     def test_list_products_by_category(self):
         test_products = self._create_products(10)
         response = self.client.get(BASE_URL)
@@ -241,12 +241,12 @@ class TestProductRoutes(TestCase):
         target = test_products[0].category
         response = self.client.get(f"{BASE_URL}?category={target.value}")
         matched_products = response.get_json()
-        self.assertTrue(len(matched_products)>0)
+        self.assertTrue(len(matched_products) > 0)
 
         for p in matched_products:
             p = Product().deserialize(p)
             self.assertEqual(p.category, target)
-    
+
     def test_list_products_by_availability(self):
         test_products = self._create_products(10)
         response = self.client.get(BASE_URL)
@@ -255,17 +255,11 @@ class TestProductRoutes(TestCase):
         target = test_products[0].available
         response = self.client.get(f"{BASE_URL}?available={target}")
         matched_products = response.get_json()
-        self.assertTrue(len(matched_products)>0)
+        self.assertTrue(len(matched_products) > 0)
 
         for p in matched_products:
             p = Product().deserialize(p)
             self.assertEqual(p.available, target)
-
-
-
-
-
-
 
     ######################################################################
     # Utility functions

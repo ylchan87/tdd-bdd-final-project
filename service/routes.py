@@ -102,12 +102,10 @@ def create_products():
 #
 @app.route("/products", methods=["GET"])
 def get_products():
-    avai = request.args.get('available', default = None, type = str)
-    name = request.args.get('name', default = None, type = str)
-    cate = request.args.get('category', default = None, type = int)
+    avai = request.args.get('available', default=None, type=str)
+    name = request.args.get('name', default=None, type=str)
+    cate = request.args.get('category', default=None, type=int)
 
-    
-    
     if avai is not None:
         if avai.lower() in ["true", "yes", "1"]:
             avai = True
@@ -142,19 +140,20 @@ def get_product(product_id):
     if product is None:
         abort(
             status.HTTP_404_NOT_FOUND,
-            f"No said product",
+            "No said product",
         )
-        
+
     msg = product.serialize()
     return jsonify(msg), status.HTTP_200_OK
 
 ######################################################################
 # U P D A T E   A   P R O D U C T
 ######################################################################
-
 #
 # PLACE YOUR CODE TO UPDATE A PRODUCT HERE
 #
+
+
 @app.route("/products/<product_id>", methods=["PUT"])
 def update_product(product_id):
 
@@ -163,16 +162,16 @@ def update_product(product_id):
     if product is None:
         abort(
             status.HTTP_404_NOT_FOUND,
-            f"No said product",
+            "No said product",
         )
 
     check_content_type("application/json")
     data = request.get_json()
-    
-    product.deserialize(data) # FIXME: no error check
+
+    product.deserialize(data)  # FIXME: no error check
     product.id = product_id
     product.update()
-        
+
     return "OK", status.HTTP_200_OK
 
 
@@ -192,9 +191,9 @@ def delete_product(product_id):
     if product is None:
         abort(
             status.HTTP_404_NOT_FOUND,
-            f"No said product",
+            "No said product",
         )
 
     product.delete()
-        
+
     return "OK", status.HTTP_200_OK
